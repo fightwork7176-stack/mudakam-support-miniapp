@@ -3,330 +3,366 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f7f4f0">
-  <title>Дорога домой — мини-игра</title>
+  <meta name="theme-color" content="#f8f4ee">
+  <title>Круг опоры — игра-размышление</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
       color-scheme: light;
-      --ink: #282637;
-      --muted: #777383;
-      --paper: #f7f4f0;
-      --card: #fffefa;
-      --accent: #765c91;
-      --accent-dark: #5a426f;
-      --soft: #eee7f2;
-      --line: #e9e4df;
-      --shadow: 0 16px 44px rgb(43 35 57 / 9%);
+      --ink: #292c36;
+      --muted: #6d707a;
+      --paper: #f8f4ee;
+      --card: #fffdf9;
+      --rose: #9d5262;
+      --rose-light: #f4e6e7;
+      --sage: #536f62;
+      --sage-light: #e7eee8;
+      --line: #e9e1d7;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
-      background:
-        radial-gradient(ellipse at 90% 0%, rgb(232 220 240 / 72%), transparent 36rem),
-        var(--paper);
+      background: var(--paper);
       color: var(--ink);
-      -webkit-font-smoothing: antialiased;
+      padding: max(18px, env(safe-area-inset-top)) 16px max(22px, env(safe-area-inset-bottom));
     }
-    main {
-      width: min(100% - 32px, 520px);
-      min-height: 100vh;
-      margin: 0 auto;
-      padding: max(28px, env(safe-area-inset-top)) 0 max(26px, env(safe-area-inset-bottom));
-      display: flex;
-      flex-direction: column;
+    main { max-width: 520px; margin: 0 auto; }
+    header { padding: 12px 2px 18px; }
+    .eyebrow {
+      color: var(--rose);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: .09em;
+      text-transform: uppercase;
     }
-    .topline { display: flex; justify-content: space-between; align-items: center; }
-    .brand { color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-    .step { color: var(--muted); font-size: 13px; }
-    .progress { height: 5px; overflow: hidden; margin: 16px 0 32px; border-radius: 8px; background: #e7e2e0; }
-    .progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width .25s ease; }
-    .content { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-bottom: 24px; }
-    .eyebrow { margin: 0 0 12px; color: var(--accent); font-size: 13px; font-weight: 700; }
-    h1 { margin: 0; font-size: clamp(29px, 8vw, 40px); line-height: 1.1; letter-spacing: -.035em; }
-    .description { margin: 15px 0 25px; color: var(--muted); font-size: 16px; line-height: 1.55; }
-    .options { display: grid; gap: 10px; }
-    button {
-      width: 100%;
-      min-height: 58px;
-      padding: 15px 17px;
-      border: 1px solid var(--line);
-      border-radius: 17px;
+    h1 { margin: 5px 0 8px; font-size: 29px; letter-spacing: -.04em; }
+    h2 { margin: 0 0 10px; font-size: 21px; letter-spacing: -.02em; }
+    p { line-height: 1.55; margin: 8px 0; }
+    .muted { color: var(--muted); font-size: 14px; }
+    .card {
       background: var(--card);
-      color: var(--ink);
-      font: inherit;
-      font-size: 15px;
-      line-height: 1.4;
-      text-align: left;
-      cursor: pointer;
-      box-shadow: 0 4px 13px rgb(43 35 57 / 3%);
-      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: 0 7px 24px rgba(66, 52, 43, .045);
+      margin-bottom: 14px;
     }
-    button:active { transform: scale(.985); }
-    button:focus-visible, input:focus-visible { outline: 3px solid #b69bc9; outline-offset: 2px; }
-    .choice:hover { border-color: #cdbadb; background: #fff; }
-    .primary {
-      border-color: var(--accent);
-      background: var(--accent);
-      color: white;
-      font-weight: 700;
-      text-align: center;
-    }
-    .primary:hover:not(:disabled) { background: var(--accent-dark); }
-    .primary:disabled { border-color: #c9c4ca; background: #c9c4ca; cursor: not-allowed; }
-    .secondary { min-height: 48px; padding: 12px 16px; background: transparent; color: var(--muted); box-shadow: none; text-align: center; }
-    .notice { margin-top: 18px; padding: 13px 15px; border-radius: 14px; background: var(--soft); color: #564d60; font-size: 13px; line-height: 1.5; }
-    .consent {
-      display: flex;
-      gap: 11px;
-      align-items: flex-start;
-      margin: 8px 0 15px;
-      padding: 15px;
+    .themes { display: grid; gap: 9px; margin: 17px 0; }
+    button, .theme {
       border: 1px solid var(--line);
       border-radius: 15px;
-      background: var(--card);
-      color: var(--muted);
+      min-height: 48px;
+      padding: 12px 14px;
+      color: var(--ink);
+      background: #fff;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .theme.selected { border-color: var(--rose); background: var(--rose-light); }
+    button.primary {
+      display: block;
+      width: 100%;
+      border: 0;
+      background: var(--rose);
+      color: white;
+      text-align: center;
+      font-weight: 700;
+    }
+    button.secondary {
+      width: 100%;
+      background: var(--sage-light);
+      border-color: transparent;
+      text-align: center;
+      font-weight: 650;
+    }
+    button:disabled { opacity: .48; cursor: default; }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+      margin: 16px 0;
+    }
+    .cell {
+      display: grid;
+      place-items: center;
+      aspect-ratio: 1;
+      border-radius: 11px;
+      background: #f1ece5;
+      color: #77736d;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .cell.visited { background: var(--sage-light); color: var(--sage); }
+    .cell.current { background: var(--rose); color: white; transform: scale(1.04); }
+    .turn { color: var(--rose); font-size: 13px; font-weight: 750; }
+    .prompt {
+      margin: 15px 0;
+      padding: 15px;
+      border-left: 3px solid var(--rose);
+      border-radius: 0 12px 12px 0;
+      background: #fbf1ef;
+      font-size: 17px;
+      line-height: 1.5;
+    }
+    .choices { display: grid; gap: 8px; margin-top: 14px; }
+    .choices button { min-height: 46px; }
+    .dice {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 14px 0;
+    }
+    .die {
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: white;
+      font-size: 28px;
+      font-weight: 750;
+    }
+    .progress { height: 7px; background: #eee7de; border-radius: 99px; overflow: hidden; }
+    .progress span { display: block; height: 100%; background: var(--sage); transition: width .25s; }
+    .consent {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 15px 0;
       font-size: 14px;
       line-height: 1.45;
     }
-    .consent input { width: 20px; height: 20px; flex: none; margin: 1px 0 0; accent-color: var(--accent); }
-    .actions { display: grid; gap: 9px; }
+    .consent input { width: 19px; height: 19px; accent-color: var(--rose); flex: none; }
     .hidden { display: none !important; }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
-    }
+    .notice { padding: 12px; border-radius: 13px; background: var(--sage-light); font-size: 13px; }
+    footer { text-align: center; color: var(--muted); font-size: 12px; padding: 4px 8px 10px; }
   </style>
 </head>
 <body>
-  <main>
-    <div class="topline">
-      <span class="brand">Дорога домой</span>
-      <span class="step" id="step">Начало</span>
+<main>
+  <header>
+    <div class="eyebrow">Игра-размышление · без оценок</div>
+    <h1>Круг опоры</h1>
+    <p class="muted">Три броска, три остановки и один небольшой шаг для себя. Это не терапия, предсказание или тест — здесь нет правильного результата.</p>
+  </header>
+
+  <section id="intro" class="card">
+    <h2>С чем хочется побыть сегодня?</h2>
+    <p class="muted">Выбери только тему. Игра не просит имя, историю или другие личные сведения.</p>
+    <div class="themes" id="themes"></div>
+    <button id="begin" class="primary" disabled>Начать путь</button>
+  </section>
+
+  <section id="play" class="hidden">
+    <div class="card">
+      <div class="turn" id="turn"></div>
+      <div class="progress"><span id="progress"></span></div>
+      <div class="board" id="board" aria-label="Игровой маршрут из 24 шагов"></div>
+      <div class="dice">
+        <div class="die" id="die" aria-label="Результат броска">—</div>
+        <div><strong id="dice-title">Брось кубик</strong><p class="muted" id="dice-hint">Случайный ход приведёт к вопросу для размышления.</p></div>
+      </div>
+      <button id="roll" class="primary">Бросить кубик</button>
+      <div id="reflection" class="hidden">
+        <div class="prompt" id="prompt"></div>
+        <p class="muted">Что ближе тебе сейчас?</p>
+        <div class="choices" id="choices"></div>
+      </div>
     </div>
-    <div class="progress" aria-label="Прогресс игры"><span id="progress"></span></div>
-    <section class="content" id="content" aria-live="polite"></section>
-    <footer class="notice">
-      Это бережная игра для размышления, не диагностика и не терапия.
-      Не вводи имена, адреса и личные данные детей. При непосредственной опасности
-      обратись в местную экстренную службу (в России — 112).
-    </footer>
-  </main>
-  <script>
-    "use strict";
-    const telegram = window.Telegram && window.Telegram.WebApp;
-    if (telegram) {
-      telegram.ready();
-      telegram.expand();
+  </section>
+
+  <section id="finish" class="hidden">
+    <div class="card">
+      <div class="eyebrow">Ты завершила свой круг</div>
+      <h2>Какой шаг хочется забрать с собой?</h2>
+      <p id="summary"></p>
+      <p class="muted">Можно оставить ответы только у себя. Если согласишься поделиться, боту уйдут только выбранная тема, номера трёх клеток и ответы-кнопки — без свободного текста.</p>
+      <label class="consent">
+        <input id="consent" type="checkbox">
+        <span>Я согласна передать эти три ответа боту и сохранить их для следующих подсказок. Я могу удалить их командой /forget.</span>
+      </label>
+      <button id="share" class="primary">Поделиться ответами с ботом</button>
+      <div style="height:9px"></div>
+      <button id="keep" class="secondary">Завершить, не передавая ответы</button>
+      <p id="result" class="notice hidden"></p>
+    </div>
+  </section>
+  <footer>Не указывай здесь данные детей, адреса или другую информацию, по которой тебя можно узнать.</footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const telegram = window.Telegram && window.Telegram.WebApp;
+  if (telegram) {
+    telegram.ready();
+    telegram.expand();
+  }
+
+  const themes = {
+    boundaries: "Границы и общение",
+    coparenting: "Дети и договорённости",
+    recovery: "Восстановление после расставания",
+    relationships: "Новые отношения"
+  };
+  const choices = [
+    { id: "pause", label: "Мне нужна пауза и немного времени" },
+    { id: "boundary", label: "Хочу обозначить одну границу" },
+    { id: "support", label: "Хочу попросить о поддержке" }
+  ];
+  const cards = [
+    "Что сегодня можно не решать немедленно?",
+    "Какой факт поможет отделить сегодняшнюю задачу от старого спора?",
+    "Какую границу хотелось бы обозначить спокойно и коротко?",
+    "К кому можно обратиться, не объясняя всё с самого начала?",
+    "Что сейчас находится в твоих силах, а что — нет?",
+    "Какой разговор можно ограничить одной практической темой?",
+    "Что помогает тебе почувствовать чуть больше опоры?",
+    "Какой небольшой шаг будет достаточно хорошим на сегодня?",
+    "Что ты хотела бы сказать себе так же бережно, как подруге?",
+    "Где можно попросить помощи вместо того, чтобы тянуть всё одной?",
+    "Какое «нет» или «позже» сейчас важно услышать самой?",
+    "Что можно упростить, чтобы стало на один шаг легче?",
+    "Какой разговор лучше отложить до более спокойного момента?",
+    "Какой конкретный вопрос поможет прояснить договорённость?",
+    "Что в твоём расписании можно оставить только для себя?",
+    "Какая поддержка была бы полезна именно сегодня?",
+    "Что помогает тебе заметить собственный темп?",
+    "Как можно сохранить ребёнка вне разногласий взрослых?",
+    "Какой признак помогает тебе понять, что рядом безопасно?",
+    "Что можно сделать, если планы другого человека изменятся?",
+    "Какой маленький знак прогресса ты можешь признать?",
+    "Что в будущих отношениях для тебя точно необязательно?",
+    "Какую одну вещь можно попросить другого взрослого сделать конкретно?",
+    "Какой добрый и реальный шаг ты выбираешь на ближайшие сутки?"
+  ];
+  const labels = {
+    pause: "дать себе паузу",
+    boundary: "обозначить одну границу",
+    support: "обратиться за поддержкой"
+  };
+  const state = { theme: null, position: 0, turn: 0, pendingCell: null, steps: [] };
+  const $ = (id) => document.getElementById(id);
+
+  Object.entries(themes).forEach(([id, label]) => {
+    const button = document.createElement("button");
+    button.className = "theme";
+    button.type = "button";
+    button.textContent = label;
+    button.addEventListener("click", () => {
+      state.theme = id;
+      document.querySelectorAll(".theme").forEach((item) => item.classList.remove("selected"));
+      button.classList.add("selected");
+      $("begin").disabled = false;
+    });
+    $("themes").append(button);
+  });
+
+  const renderBoard = () => {
+    $("board").replaceChildren();
+    for (let cell = 1; cell <= 24; cell += 1) {
+      const tile = document.createElement("div");
+      tile.className = "cell";
+      tile.textContent = String(cell);
+      if (cell <= state.position) tile.classList.add("visited");
+      if (cell === state.position) tile.classList.add("current");
+      $("board").append(tile);
     }
+  };
+  const show = (id) => {
+    ["intro", "play", "finish"].forEach((section) => $(section).classList.toggle("hidden", section !== id));
+  };
 
-    const focusOptions = [
-      ["boundaries", "Границы и спокойное общение"],
-      ["coparenting", "Договорённости с бывшим о детях"],
-      ["rebuilding", "Опора после расставания"],
-      ["dating", "Новые отношения — когда буду готова"],
-    ];
-    const stations = [
-      {
-        id: "tuman",
-        chapter: "Туман",
-        title: "Что поможет немного прояснить мысли?",
-        description: "Не нужно разбираться во всём сразу. Начни с того, что сейчас посильно.",
-        choices: [
-          ["clarity", "Отделить известные факты от догадок"],
-          ["pause", "Не пытаться решить всё сегодня"],
-          ["person", "Обратиться к тому, кому доверяю"],
-        ],
-      },
-      {
-        id: "pojar",
-        chapter: "Пожар",
-        title: "Если впереди непростой разговор…",
-        description: "Какой формат поможет сохранить ясность и безопасность?",
-        choices: [
-          ["logistics", "Только коротко обсудить конкретное дело"],
-          ["pause", "Сначала взять паузу и ответить позже"],
-          ["boundary", "Обозначить одну ясную границу"],
-        ],
-      },
-      {
-        id: "torg",
-        chapter: "Торг",
-        title: "Когда хочется всё исправить сразу…",
-        description: "Что поможет не взваливать на себя больше, чем можно решить сейчас?",
-        choices: [
-          ["one_thing", "Выбрать один вопрос, который можно решить"],
-          ["rest", "Разрешить себе не принимать решение немедленно"],
-          ["accept", "Сосредоточиться на том, что зависит от меня"],
-        ],
-      },
-      {
-        id: "tishina",
-        chapter: "Тишина",
-        title: "Где может появиться немного опоры?",
-        description: "Выбери то, что кажется посильным, а не идеальным.",
-        choices: [
-          ["friend", "Связаться с человеком, которому доверяю"],
-          ["time", "Выделить немного времени только себе"],
-          ["professional", "Поговорить с живым специалистом"],
-        ],
-      },
-      {
-        id: "svoya",
-        chapter: "Своя",
-        title: "Какой маленький шаг возьмёшь с собой?",
-        description: "Его можно изменить или отменить в любой момент.",
-        choices: [
-          ["message", "Не отвечать сгоряча"],
-          ["boundary", "Сказать, что мне подходит, а что нет"],
-          ["small_step", "Сделать одну небольшую вещь для себя"],
-        ],
-      },
-    ];
-    const answers = {};
-    let focus = "";
-    let stationIndex = -1;
-    const content = document.getElementById("content");
-    const progress = document.getElementById("progress");
-    const stepLabel = document.getElementById("step");
+  $("begin").addEventListener("click", () => {
+    if (!state.theme) return;
+    show("play");
+    renderBoard();
+    updateProgress();
+  });
 
-    function el(tag, className, text) {
-      const node = document.createElement(tag);
-      if (className) node.className = className;
-      if (text) node.textContent = text;
-      return node;
-    }
+  const updateProgress = () => {
+    $("turn").textContent = `Ход ${Math.min(state.turn + 1, 3)} из 3 · ${themes[state.theme]}`;
+    $("progress").style.width = `${(state.turn / 3) * 100}%`;
+  };
 
-    function renderOptions(options, onSelect) {
-      const list = el("div", "options");
-      options.forEach(([value, label]) => {
-        const button = el("button", "choice", label);
-        button.type = "button";
-        button.addEventListener("click", () => onSelect(value));
-        list.append(button);
-      });
-      return list;
-    }
-
-    function renderFocus() {
-      stationIndex = -1;
-      stepLabel.textContent = "Тема";
-      progress.style.width = "0%";
-      content.replaceChildren(
-        el("p", "eyebrow", "Несколько минут для себя"),
-        el("h1", "", "С чего начнём?"),
-        el("p", "description", "Выбери тему, которая сейчас ближе. Здесь нет правильных ответов и обязательного маршрута."),
-        renderOptions(focusOptions, (value) => {
-          focus = value;
-          renderStation(0);
-        }),
-      );
-    }
-
-    function renderStation(index) {
-      if (index >= stations.length) {
-        renderFinish();
-        return;
-      }
-      stationIndex = index;
-      const station = stations[index];
-      stepLabel.textContent = `${index + 1} из ${stations.length}`;
-      progress.style.width = `${Math.round((index + 1) / stations.length * 100)}%`;
-      content.replaceChildren(
-        el("p", "eyebrow", `Глава ${index + 1} · ${station.chapter}`),
-        el("h1", "", station.title),
-        el("p", "description", station.description),
-        renderOptions(station.choices, (value) => {
-          answers[station.id] = value;
-          renderStation(index + 1);
-        }),
-      );
-    }
-
-    function renderFinish() {
-      stepLabel.textContent = "Финиш";
-      progress.style.width = "100%";
-      const heading = el("h1", "", "На сегодня этого достаточно.");
-      const description = el("p", "description", "Ты прошла пять глав маршрута в своём темпе. Можно закончить здесь — без сохранения и передачи ответов.");
-      const consent = el("label", "consent");
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.id = "share-consent";
-      const consentText = el("span", "", "Я согласна передать выбранную тему и пять ответов боту и сохранить их для персонализации будущих подсказок. Имена и данные детей не передаются. Удалить ответы можно командой /forget.");
-      consent.append(checkbox, consentText);
-
-      const canSendToTelegram = Boolean(telegram && typeof telegram.sendData === "function");
-      const shareButton = el(
-        "button",
-        "primary",
-        canSendToTelegram
-          ? "Сохранить и передать ответы в чат"
-          : "Открой игру из Telegram, чтобы передать ответы",
-      );
-      const errorMessage = el("p", "notice hidden", "");
-      errorMessage.setAttribute("role", "alert");
-      errorMessage.setAttribute("aria-live", "assertive");
-      shareButton.type = "button";
-      shareButton.disabled = !canSendToTelegram;
-      shareButton.addEventListener("click", () => {
-        if (!checkbox.checked || !canSendToTelegram) return;
-        shareButton.disabled = true;
-        shareButton.textContent = "Передаю ответы в чат…";
-        try {
-          telegram.sendData(JSON.stringify({
-            type: "journey_result",
-            version: 1,
-            consent: true,
-            focus,
-            answers,
-          }));
-        } catch (error) {
-          shareButton.disabled = false;
-          shareButton.textContent = "Повторить передачу";
-          errorMessage.textContent = "Не удалось передать ответы. Вернись в чат с ботом, снова открой игру кнопкой Telegram и попробуй ещё раз.";
-          errorMessage.classList.remove("hidden");
-          console.error("Telegram Mini App sendData failed", error);
-        }
-      });
-      checkbox.addEventListener("change", () => {
-        shareButton.disabled = !checkbox.checked || !canSendToTelegram;
-      });
-
-      const privateButton = el("button", "secondary", "Завершить без передачи ответов");
-      privateButton.type = "button";
-      privateButton.addEventListener("click", () => {
-        if (telegram && typeof telegram.close === "function") telegram.close();
+  $("roll").addEventListener("click", () => {
+    if (state.turn >= 3) return;
+    const die = Math.floor(Math.random() * 6) + 1;
+    state.position = Math.min(24, state.position + die);
+    state.pendingCell = state.position;
+    $("die").textContent = String(die);
+    $("dice-title").textContent = `Шаг ${state.position}`;
+    $("dice-hint").textContent = "Остановись на вопросе и выбери то, что откликается.";
+    $("prompt").textContent = cards[state.position - 1];
+    $("choices").replaceChildren();
+    choices.forEach((choice) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = choice.label;
+      button.addEventListener("click", () => {
+        state.steps.push({ cell: state.pendingCell, choice: choice.id });
+        state.turn += 1;
+        $("reflection").classList.add("hidden");
+        $("roll").disabled = false;
+        renderBoard();
+        updateProgress();
+        if (state.turn === 3) finish();
         else {
-          content.replaceChildren(
-            el("p", "eyebrow", "Готово"),
-            el("h1", "", "Ответы остались только в этой игре."),
-            el("p", "description", "Передачи боту не было. Можно закрыть это окно."),
-          );
+          $("die").textContent = "—";
+          $("dice-title").textContent = "Брось кубик ещё раз";
+          $("dice-hint").textContent = "Один вопрос за раз — этого достаточно.";
         }
       });
+      $("choices").append(button);
+    });
+    $("reflection").classList.remove("hidden");
+    $("roll").disabled = true;
+    renderBoard();
+  });
 
-      const actions = el("div", "actions");
-      actions.append(shareButton, privateButton);
-      content.replaceChildren(
-        el("p", "eyebrow", "Маршрут завершён"),
-        heading,
-        description,
-        consent,
-        errorMessage,
-        actions,
-      );
-      if (shareButton.disabled) {
-        const launchHelp = el(
-          "p",
-          "notice",
-          "Похоже, игра открыта не внутри Telegram. Чтобы передать ответы, вернись в чат с ботом и открой игру кнопкой «Открыть „Дорогу домой“». В обычном браузере передача в чат недоступна. Можно закончить здесь без передачи.",
-        );
-        content.insertBefore(launchHelp, actions);
-      }
+  const finish = () => {
+    show("finish");
+    const actions = state.steps.map((step) => labels[step.choice]);
+    $("summary").textContent = `В твоём круге были шаги: ${actions.join(", ")}. Выбери один из них — или ни один, если сейчас хочется только отдохнуть.`;
+    $("progress").style.width = "100%";
+  };
+
+  const showResult = (message) => {
+    $("result").textContent = message;
+    $("result").classList.remove("hidden");
+  };
+
+  $("share").addEventListener("click", () => {
+    if (!$("consent").checked) {
+      showResult("Чтобы передать ответы, сначала отметь отдельное согласие. Можно закончить игру, не передавая их.");
+      return;
     }
+    if (!telegram || !telegram.initData) {
+      showResult("Передача доступна только при запуске игры кнопкой в Telegram. Сейчас ответы не отправлены.");
+      return;
+    }
+    const payload = {
+      type: "support_game_result",
+      version: 1,
+      consent: true,
+      theme: state.theme,
+      steps: state.steps
+    };
+    try {
+      telegram.sendData(JSON.stringify(payload));
+      showResult("Ответы переданы боту. Их можно удалить командой /forget.");
+    } catch (error) {
+      showResult("Не удалось отправить ответы. Они не сохранены; попробуй открыть игру заново из чата с ботом.");
+    }
+  });
 
-    renderFocus();
-  </script>
+  $("keep").addEventListener("click", () => {
+    showResult("Игра завершена. Ответы не переданы и не сохранены ботом.");
+  });
+})();
+</script>
 </body>
 </html>
