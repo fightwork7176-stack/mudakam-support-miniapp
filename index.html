@@ -256,21 +256,41 @@
       const consentText = el("span", "", "Я согласна передать выбранную тему и пять ответов боту и сохранить их для персонализации будущих подсказок. Имена и данные детей не передаются. Удалить ответы можно командой /forget.");
       consent.append(checkbox, consentText);
 
-      const shareButton = el("button", "primary", "Сохранить и передать ответы в чат");
+      const canSendToTelegram = Boolean(telegram && typeof telegram.sendData === "function");
+      const shareButton = el(
+        "button",
+        "primary",
+        canSendToTelegram
+          ? "Сохранить и передать ответы в чат"
+          : "Открой игру из Telegram, чтобы передать ответы",
+      );
+      const errorMessage = el("p", "notice hidden", "");
+      errorMessage.setAttribute("role", "alert");
+      errorMessage.setAttribute("aria-live", "assertive");
       shareButton.type = "button";
-      shareButton.disabled = !telegram || typeof telegram.sendData !== "function";
+      shareButton.disabled = !canSendToTelegram;
       shareButton.addEventListener("click", () => {
-        if (!checkbox.checked || !telegram || typeof telegram.sendData !== "function") return;
-        telegram.sendData(JSON.stringify({
-          type: "journey_result",
-          version: 1,
-          consent: true,
-          focus,
-          answers,
-        }));
+        if (!checkbox.checked || !canSendToTelegram) return;
+        shareButton.disabled = true;
+        shareButton.textContent = "Передаю ответы в чат…";
+        try {
+          telegram.sendData(JSON.stringify({
+            type: "journey_result",
+            version: 1,
+            consent: true,
+            focus,
+            answers,
+          }));
+        } catch (error) {
+          shareButton.disabled = false;
+          shareButton.textContent = "Повторить передачу";
+          errorMessage.textContent = "Не удалось передать ответы. Вернись в чат с ботом, снова открой игру кнопкой Telegram и попробуй ещё раз.";
+          errorMessage.classList.remove("hidden");
+          console.error("Telegram Mini App sendData failed", error);
+        }
       });
       checkbox.addEventListener("change", () => {
-        shareButton.disabled = !checkbox.checked || !telegram || typeof telegram.sendData !== "function";
+        shareButton.disabled = !checkbox.checked || !canSendToTelegram;
       });
 
       const privateButton = el("button", "secondary", "Завершить без передачи ответов");
@@ -293,10 +313,16 @@
         heading,
         description,
         consent,
+        errorMessage,
         actions,
       );
       if (shareButton.disabled) {
-        content.append(el("p", "description", "Передача ответов доступна только при открытии игры кнопкой в Telegram. Ты всё равно можешь закончить без передачи."));
+        const launchHelp = el(
+          "p",
+          "notice",
+          "Похоже, игра открыта не внутри Telegram. Чтобы передать ответы, вернись в чат с ботом и открой игру кнопкой «Открыть „Дорогу домой“». В обычном браузере передача в чат недоступна. Можно закончить здесь без передачи.",
+        );
+        content.insertBefore(launchHelp, actions);
       }
     }
 
